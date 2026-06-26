@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indovina il Personaggio</title>
+    <style>
+        body {
+            font-family: AZ Grampa;
+            margin-top: 15%;
+            padding: 50px;
+            color: rgb(19, 99, 86);
+            background-color: #e7e7e7;
+            background-image: url(img/Senza\ titolo-22.png);
+            background-repeat: no-repeat;
+            position: relative;
+            overflow: hidden;
+        }
+        @font-face {
+            font-family: "AZ Grampa";
+            src: url(/assets/font/AZ\ Grampa.TTF);
+        }
+        .hidden {
+            display: none;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            font-family: AZ Grampa;
+            border: 2px solid rgb(19, 99, 86);
+            border-radius: 0.7em;
+            color: rgb(19, 99, 86);
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        button:hover {
+            background-color: rgb(19, 99, 86);
+            color: #e7e7e7;
+        }
+        .character-image {
+           
+            max-width: 400px;
+            max-height: 400px;
+            border-radius: 10px;
+            display: none;
+            transition: all 2s ease-in-out;
+        }
+        
+    </style>
+    
+</head>
+<body>
+    <h1>Indovina il Personaggio</h1>
+    <div id="question-section">
+        <p id="question"></p>
+        <button onclick="answer('yes')">Sì</button>
+        <button onclick="answer('no')">No</button>
+    </div>
+    <div id="guess-section" class="hidden">
+        <p id="guess"></p>
+        <button onclick="guessAnswer('correct')">Corretto</button>
+        <button onclick="guessAnswer('wrong')">Sbagliato</button>
+    </div>
+    <div id="result-section" class="hidden">
+        <p id="result"></p>
+        <button onclick="restart()">Gioca di nuovo</button>
+    </div>
+    <div id="background-blur" class="background-blur"></div>
+    <img id="character-image" class="character-image" src="" alt="Immagine del personaggio">
+
+    <script>
+        const characters = [
+        { name: 'Albert Einstein', traits: ['uomo', 'scienziato', 'fisico', 'tedesco'], img: 'img/Albert_Einstein_Head.jpg' },
+        { name: 'Marie Curie', traits: ['donna', 'scienziato', 'chimica', 'francese', 'polacca'] , img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Marie_Curie_c1920.jpg/1200px-Marie_Curie_c1920.jpg'},
+        { name: 'Charles Darwin', traits: ['uomo', 'scienziato', 'biologo', 'britannico'], img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Charles_Darwin_01.jpg/1200px-Charles_Darwin_01.jpg' },
+        { name: 'Jane Goodall', traits: ['vivo','donna', 'scienziata', 'primatologa', 'britannico'], img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Jane-goodall.jpg/1200px-Jane-goodall.jpg' },
+        { name: 'Alan Turing', traits: ['uomo', 'scienziato', 'matematico', 'britannico'] , img: 'https://www.gay.it/wp-content/uploads/2018/06/alan-turing-biografia-gay-1200x799.jpg'},
+	    { name: 'Carl Friedrich Gauss', traits: ['uomo', 'scienziato', 'matematico', 'tedesco'], img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Carl_Friedrich_Gauss_1840_by_Jensen.jpg/1200px-Carl_Friedrich_Gauss_1840_by_Jensen.jpg' },
+        { name: 'Srinivasa Ramanujan', traits: ['uomo', 'scienziato', 'matematico', 'indiano'], img: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Srinivasa_Ramanujan-Add._MS_a94_version2.jpg' },
+        { name: 'Tim Berners-Lee', traits: ['vivo','uomo', 'scienziato', 'informatico', 'britannico'] , img: 'https://cdn.britannica.com/94/123894-050-53EC378E/Tim-Berners-Lee-2005.jpg'},
+        { name: 'Nikola Tesla', traits: ['uomo', 'scienziato', 'inventore', 'serbo', 'americano'], img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Tesla_circa_1890.jpeg/800px-Tesla_circa_1890.jpeg' },
+        { name: 'Hedy Lamarr', traits: ['donna', 'inventore', 'attrice', 'austriaca'] , img: 'https://upload.wikimedia.org/wikipedia/commons/6/61/Hedy_lamarr_-_1940.jpg'},
+        { name: 'Steve Jobs', traits: ['uomo', 'imprenditore', 'americano'], img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Steve_Jobs.jpg/800px-Steve_Jobs.jpg' },
+        { name: 'Elon Musk', traits: ['uomo', 'vivo','imprenditore', 'sudafricano', 'americano'], img: 'https://m.wsj.net/video/20180907/090718muskpot1/090718muskpot1_1920x1080.jpg' },
+
+	    { name: 'Guglielmo Marconi', traits: ['uomo', 'inventore', 'ingegnere', 'italiano'] , img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Guglielmo_Marconi.jpg/640px-Guglielmo_Marconi.jpg'},
+        { name: 'Isambard Kingdom Brunel', traits: ['uomo', 'ingegnere', 'britannico'] , img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Robert_Howlett_%28Isambard_Kingdom_Brunel_Standing_Before_the_Launching_Chains_of_the_Great_Eastern%29%2C_The_Metropolitan_Museum_of_Art_-_restoration1.jpg/1200px-Robert_Howlett_%28Isambard_Kingdom_Brunel_Standing_Before_the_Launching_Chains_of_the_Great_Eastern%29%2C_The_Metropolitan_Museum_of_Art_-_restoration1.jpg'},
+	    { name: 'Emily Warren Roebling', traits: ['donna', 'ingegnere', 'americano'], img: 'https://upload.wikimedia.org/wikipedia/commons/8/80/Brooklyn_Museum_-_Portrait_of_Emily_Warren_Roebling_-_Charles-%C3%89mile-Auguste_Carolus-Duran.jpg' },
+	    { name: 'Dean Kamen', traits: ['uomo', 'Inventore', 'vivo','ingegnere', 'americano', ] , img: 'https://upload.wikimedia.org/wikipedia/commons/8/82/Dean_Kamen_visits_Team_Whiteman_160426-F-TQ704-039_%28cropped%29.jpg'},
+        { name: 'Leonardo da Vinci', traits: ['uomo', 'artista', 'inventore', 'ingegnere', 'italiano'], img: 'https://cdn.britannica.com/57/194757-050-FD0A1CAA/Portrait-Leonardo-da-Vinci.jpg' },
+        { name: 'Pablo Picasso', traits: ['uomo', 'artista', 'spagnolo'] , img: 'https://www.raffaellogalleria.com/images/thumbs/0000182_pablo-picasso.jpeg'},
+        { name: 'Frida Kahlo', traits: ['donna', 'artista', 'messicana'], img: 'https://artboxexperience.com/wp-content/uploads/2024/01/frida-kahlo-wystawa-warszawa-art-box-experience.jpg' },
+        { name: 'Vincent van Gogh', traits: ['uomo', 'artista', 'olandese'] , img: 'https://upload.wikimedia.org/wikipedia/commons/3/38/VanGogh_1887_Selbstbildnis.jpg'},
+	    { name: 'Michelangelo Buonarroti', traits: ['uomo', 'artista', 'scultore', 'italiano'], img: 'https://cdn.britannica.com/46/75046-050-0973B0E8/Michelangelo.jpg' },
+	    { name: 'Richard Wagner', traits: ['uomo', 'compositore', 'tedesco'], img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/RichardWagner.jpg/800px-RichardWagner.jpg' },
+	    { name: 'Claude Debussy', traits: ['uomo', 'compositore', 'francese'] , img: 'https://upload.wikimedia.org/wikipedia/commons/f/f9/Claude_Debussy_ca_1908%2C_foto_av_F%C3%A9lix_Nadar.jpg'},
+        { name: 'Emmy Noether', traits: ['donna', 'matematico', 'tedesco'] , img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Noether.jpg/1200px-Noether.jpg'},
+        { name: 'Ada Lovelace', traits: ['donna', 'matematico', 'britannico'], img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Ada_Lovelace_portrait.jpg/1200px-Ada_Lovelace_portrait.jpg'},
+        ];
+        const questions = [
+    { text: 'Il personaggio è un uomo?', traits: ['uomo'] },
+    { text: 'Il personaggio è una donna?', traits: ['donna'] },
+	{ text: 'Il personaggio è ancora in vita?', traits: ['vivo'] },
+    { text: 'Il personaggio è uno scienziato?', traits: ['scienziato'] },
+    { text: 'Il personaggio è un artista?', traits: ['artista'] },
+	{ text: 'Il personaggio è noto per le sue sculture?', traits: ['scultore'] },
+	{ text: 'Il personaggio è un compositore?', traits: ['compositore'] },
+    { text: 'Il personaggio è un imprenditore?', traits: ['imprenditore'] },
+    { text: 'Il personaggio è britannico?', traits: ['britannico'] },
+    { text: 'Il personaggio è americano?', traits: ['americano'] },
+    { text: 'Il personaggio è tedesco?', traits: ['tedesco'] },
+    { text: 'Il personaggio è italiano?', traits: ['italiano'] },
+    { text: 'Il personaggio è francese?', traits: ['francese'] },
+    { text: 'Il personaggio è polacco?', traits: ['polacca'] },
+    { text: 'Il personaggio è messicano?', traits: ['messicana'] },
+    { text: 'Il personaggio è spagnolo?', traits: ['spagnolo'] },
+    { text: 'Il personaggio è indiano?', traits: ['indiano'] },
+    { text: 'Il personaggio è sudafricano?', traits: ['sudafricano'] },
+    { text: 'Il personaggio è serbo?', traits: ['serbo'] },
+    { text: 'Il personaggio è austriaco?', traits: ['austriaca'] },
+    { text: 'Il personaggio è un inventore?', traits: ['inventore'] },
+    { text: 'Il personaggio è un fisico?', traits: ['fisico'] },
+    { text: 'Il personaggio è un chimico?', traits: ['chimica'] },
+    { text: 'Il personaggio è un biologo?', traits: ['biologo'] },
+    { text: 'Il personaggio è un primatologo?', traits: ['primatologa'] },
+    { text: 'Il personaggio è un matematico?', traits: ['matematico'] },
+    { text: 'Il personaggio è un ingegnere?', traits: ['ingegnere'] },
+    { text: 'Il personaggio è un informatico?', traits: ['informatico'] },
+
+
+];
+
+
+        let currentQuestionIndex = 0;
+        let possibleCharacters = characters.slice();
+        let askedQuestions = [];
+
+        function calculateTraitFrequencies() {
+            const traitFrequencies = {};
+
+            for (const character of possibleCharacters) {
+                for (const trait of character.traits) {
+                    if (!traitFrequencies[trait]) {
+                        traitFrequencies[trait] = 0;
+                    }
+                    traitFrequencies[trait]++;
+                }
+            }
+
+            return traitFrequencies;
+        }
+
+        function askQuestion() {
+            if (possibleCharacters.length <= 1) {
+                makeGuess();
+                return;
+            }
+
+            const traitFrequencies = calculateTraitFrequencies();
+            
+            // Ordina le domande in base alla frequenza dei tratti
+            let sortedQuestions = questions
+                .filter((question, index) => !askedQuestions.includes(index))
+                .sort((a, b) => {
+                    const aFrequency = a.traits.reduce((sum, trait) => sum + (traitFrequencies[trait] || 0), 0);
+                    const bFrequency = b.traits.reduce((sum, trait) => sum + (traitFrequencies[trait] || 0), 0);
+                    return bFrequency - aFrequency;
+                });
+
+            if (sortedQuestions.length > 0) {
+                const selectedQuestion = sortedQuestions[0];
+                askedQuestions.push(questions.indexOf(selectedQuestion));
+                document.getElementById('question').innerText = selectedQuestion.text;
+            } else {
+                makeGuess();
+            }
+        }
+
+        function answer(response) {
+            const currentQuestion = questions[askedQuestions[currentQuestionIndex]];
+            currentQuestionIndex++;
+
+            possibleCharacters = possibleCharacters.filter(character => {
+                const hasTrait = currentQuestion.traits.some(trait => character.traits.includes(trait));
+                return (response === 'yes' && hasTrait) || (response === 'no' && !hasTrait);
+            });
+
+            if (possibleCharacters.length === 0) {
+                document.getElementById('question-section').classList.add('hidden');
+                document.getElementById('result-section').classList.remove('hidden');
+                document.getElementById('result').innerText = 'Questo personaggio non esiste.';
+            } else {
+                askQuestion();
+            }
+        }
+
+        function makeGuess() {
+            const characterImage = document.getElementById('character-image');
+            if (possibleCharacters.length === 1) {
+                const guessedCharacter = possibleCharacters[0];
+                document.getElementById('guess').innerText = `È ${guessedCharacter.name}?`;
+                characterImage.src = guessedCharacter.img;
+                characterImage.style.display = 'block';
+                document.getElementById('question-section').classList.add('hidden');
+                document.getElementById('guess-section').classList.remove('hidden');
+            } else if (possibleCharacters.length === 0) {
+                document.getElementById('guess').innerText = 'Questo personaggio non esiste.';
+                characterImage.style.display = 'none';
+                document.getElementById('question-section').classList.add('hidden');
+                document.getElementById('result-section').classList.remove('hidden');
+            } else {
+                document.getElementById('guess').innerText = 'Non sono riuscito a indovinare. Vuoi riprovare?';
+                characterImage.style.display = 'none';
+                document.getElementById('question-section').classList.add('hidden');
+                document.getElementById('result-section').classList.remove('hidden');
+            }
+        }
+
+        function guessAnswer(response) {
+            if (response === 'correct') {
+                document.getElementById('result').innerText = 'VITTORIA!';
+            } else {
+                document.getElementById('result').innerText = 'Sbagliato! Prova di nuovo.';
+            }
+            document.getElementById('guess-section').classList.add('hidden');
+            document.getElementById('result-section').classList.remove('hidden');
+        }
+
+        function restart() {
+            currentQuestionIndex = 0;
+            possibleCharacters = characters.slice();
+            askedQuestions = [];
+            document.getElementById('question-section').classList.remove('hidden');
+            document.getElementById('guess-section').classList.add('hidden');
+            document.getElementById('result-section').classList.add('hidden');
+            document.getElementById('character-image').style.display = 'none';
+            askQuestion();
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            askQuestion();
+        });
+    </script>
+</body>
+</html>
